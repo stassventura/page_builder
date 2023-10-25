@@ -1,35 +1,24 @@
-import { Data } from '../types';
+import { Data, Selected } from '../types';
 import classNames from 'classnames';
 
 interface WorkSpaceProps {
   data: Data[];
-  selectedItemId: number | null;
-  selectItem: (id: number) => void;
+  selectedItem: Selected;
+  selectItem: (id: number, type: string) => void;
   createCall: (id: number) => void;
 }
 
-const WorkSpace: React.FC<WorkSpaceProps> = ({ data, selectItem, selectedItemId }) => {
+const WorkSpace: React.FC<WorkSpaceProps> = ({ data, selectItem, selectedItem }) => {
   return (
     <div className="flex flex-col gap-4 mt-4">
       {data.length === 0 && (
-        <div className="mt-5 ">
-          <p className="text-center text-xl mb-6 font-semibold text-gray-700">
+        <div className="mt-5">
+          <p className="text-center text-xl mb- font-semibold text-gray-700 shadow-2xl">
             The workspace is empty, start working by adding an element{' '}
           </p>
-          <div className="opacity-60 bg-slate-50 p-2">
-            <h2 className="my-5 text-xl">Example:</h2>
-            <div className="flex gap-4 bg-gray-100 p-5 rounded-lg shadow-sm">
-              <div
-                className="flex-1  p-5 rounded-lg shadow-sm"
-                style={{
-                  backgroundImage:
-                    "url('https://wallpapers.com/images/hd/rick-and-morty-fighting-green-aliens-zp6odvm0462ff5c2.jpg')",
-                  backgroundPosition: 'center',
-                }}>
-                <p className="mb-2 text-xl font-bold text-white opacity-0">Header</p>
-                <p className="text-gray-600 opacity-0">Lorem ipsum placeholder text.</p>
-              </div>
-            </div>
+          <div className="opacity-60 p-2">
+            <h2 className="my-3 text-xl">Example:</h2>
+            <div className="flex gap-4 bg-gray-100 p-5 rounded-lg shadow-sm"></div>
             <div className="flex gap-4 bg-gray-100 p-5 rounded-lg shadow-sm">
               <div className="w-1/3 bg-lime-200 p-5 rounded-lg shadow-sm">
                 <p className="mb-2 text-lg font-semibold">Header</p>
@@ -50,24 +39,24 @@ const WorkSpace: React.FC<WorkSpaceProps> = ({ data, selectItem, selectedItemId 
       {data.map((row) => (
         <div
           className={classNames(
-            'bg-gray-100',
             'p-5',
             'rounded-lg',
             'shadow-sm',
-            'border-2',
+            'border-4',
             'border-transparent',
             'cursor-pointer',
             'grid',
-            'gap-1',
           )}
           style={{
-            borderColor: `${selectedItemId === row.id ? '#CE5A67' : ''}`,
-            gridTemplateColumns: `repeat(${row.grid <= 12 ? row.grid : 12}, 1fr)`,
+            borderColor: `${selectedItem?.id === row.id ? '#232D3F' : ''}`,
+            gridTemplateColumns: `repeat(${row.cells.length <= 12 ? row.cells.length : 12}, 1fr)`,
+            background: `${row.color}`,
+            gap: `${row.gap}px`,
           }}
-          onClick={() => selectItem(row.id)}
+          onClick={() => selectItem(row.id, 'row')}
           key={row.id}>
           {row.cells.length === 0 ? (
-            <p className="mb-2 text-lg font-medium text-center text-gray-400 w-full">
+            <p className="mb-2 text-lg font-medium text-center text-white w-full">
               The row is empty
             </p>
           ) : (
@@ -75,8 +64,27 @@ const WorkSpace: React.FC<WorkSpaceProps> = ({ data, selectItem, selectedItemId 
               {row.cells.map((call) => (
                 <div
                   key={call.id}
-                  className={`flex-1 bg-red-300 text-center border-2 border-transparent`}>
-                  {call.name}
+                  className={`flex-1  text-white text-center border-2 border-transparent p-5 rounded`}
+                  style={{
+                    borderColor: `${selectedItem?.id === call.id ? '#CE5A67' : ''}`,
+                    opacity: `${selectedItem?.id === call.id ? '0.9' : ''}`,
+                    background: `${call.color}`,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectItem(call.id, 'call');
+                  }}>
+                  {call.content && call.content.type === 'button' && (
+                    <button className="font-extrabold py-4 px-6 shadow-2xl rounded active:opacity-70">
+                      button {call.name}
+                    </button>
+                  )}
+                  {call.content && call.content.type === 'text' && (
+                    <p className="font-extrabold py-4 px-6 rounded">{call.content.value}</p>
+                  )}
+                  {call.content && call.content.type === 'image' && (
+                    <img className="w-48 block mx-auto" src={call.content.src} alt="image" />
+                  )}
                 </div>
               ))}
             </>

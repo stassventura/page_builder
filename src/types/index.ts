@@ -1,13 +1,25 @@
+type Content = {
+  type: string;
+  src?: string;
+  value?: string;
+};
+
 type Call = {
   id: number;
   name: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // content: any[];
+  color: string;
+  content?: Content;
 };
 
 export type Data = {
   id: number;
   name: string;
   cells: Call[];
-  grid: number;
+  color: string;
+  gap: number;
 };
+
+export type Selected = {
+  id: number | null;
+  type: string;
+} | null;
