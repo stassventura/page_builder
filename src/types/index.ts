@@ -1,5 +1,5 @@
 type Content = {
-  type: string;
+  type: 'button' | 'image' | 'text';
   src?: string;
   value?: string;
 };
@@ -18,8 +18,9 @@ export type Row = {
   color: string;
   gap: number;
 };
+export type ActiveItemType = 'row' | 'cell';
 
-export type Selected = {
-  id: number | null;
-  type: string;
+export type ActiveItem = {
+  id: number;
+  type: ActiveItemType;
 } | null;

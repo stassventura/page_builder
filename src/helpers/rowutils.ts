@@ -1,66 +1,12 @@
-import { toast } from 'react-toastify';
-import { Row, Selected } from '../types';
+import { Row, ActiveItem } from '../types';
+import {
+  generateRandomID,
+  getRandomRowColor,
+  getRandomCellColor,
+  showError,
+  getRandomSentence,
+} from './fakers';
 import { messages } from './messages';
-
-export const getRandomRowColor = () => {
-  const colors = ['F875AA', 'A0E9FF', 'BEADFA', 'FF9B9B', 'FFD966'];
-  const randomIndex = Math.floor(Math.random() * colors.length);
-  return `#${colors[randomIndex]}`;
-};
-
-export const getRandomCellColor = () => {
-  const colors = ['008170', '9F73AB', '704F4F', '5B4B8A'];
-  const randomIndex = Math.floor(Math.random() * colors.length);
-  return `#${colors[randomIndex]}`;
-};
-
-export const getRandomSentence = () => {
-  const sentences = [
-    'This could be your ad.',
-    'The sun is shining.',
-    'Rain is coming soon.',
-    'I love programming.',
-    'JavaScript is fun.',
-    'This is a random sentence.',
-  ];
-  const randomIndex = Math.floor(Math.random() * sentences.length);
-  return sentences[randomIndex];
-};
-
-export const generateRandomID = () => {
-  let id: number = 0;
-  for (let i = 0; i < 12; i++) {
-    id = id * 10 + Math.floor(Math.random() * 10);
-  }
-  return id;
-};
-
-export const showError = (msg: string) => {
-  toast.error(`${msg}`, {
-    position: 'top-right',
-    autoClose: 1500,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: 'colored',
-  });
-  return;
-};
-export const showWarning = (msg: string) => {
-  toast.warning(`${msg}`, {
-    position: 'top-right',
-    autoClose: 1000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: 'colored',
-  });
-  return;
-};
 
 export const generateRow = (rowLength: number) => {
   const newRow = {
@@ -85,14 +31,14 @@ export const generateCell = (row: Row) => {
 };
 
 export const RowHelpers = {
-  addButton: (prew: Row[], item: Selected) => {
+  addButton: (prew: Row[], item: ActiveItem): Row[] => {
     return prew.map((row) => {
       if (row.cells.some((cell) => cell.id === item!.id)) {
         return {
           ...row,
           cells: row.cells.map((cell) => {
             if (cell.id === item!.id) {
-              if (cell.content && cell.content.type === 'button') {
+              if (cell?.content?.type === 'button') {
                 showError(messages.buttonExists);
                 return cell;
               }
@@ -111,7 +57,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  changeRowColor: (prev: Row[], itemId: number, color: string) => {
+  changeRowColor: (prev: Row[], itemId: number, color: string): Row[] => {
     return prev.map((row) => {
       if (row.id === itemId) {
         return { ...row, color: color };
@@ -120,7 +66,7 @@ export const RowHelpers = {
     });
   },
 
-  changeCellColor: (prev: Row[], itemId: number, color: string) => {
+  changeCellColor: (prev: Row[], itemId: number, color: string): Row[] => {
     return prev.map((row) => {
       if (row.cells.some((cell) => cell.id === itemId)) {
         return {
@@ -136,7 +82,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  addCellToRow: (prevRows: Row[], rowId: number) => {
+  addCellToRow: (prevRows: Row[], rowId: number): Row[] => {
     return prevRows.map((row) => {
       if (row.id === rowId) {
         const newCell = generateCell(row);
@@ -148,7 +94,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  expandRowGap: (prevRows: Row[], rowId: number) => {
+  expandRowGap: (prevRows: Row[], rowId: number): Row[] => {
     return prevRows.map((row) => {
       if (row.id === rowId) {
         return {
@@ -159,7 +105,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  compressRowGap: (prevRows: Row[], rowId: number) => {
+  compressRowGap: (prevRows: Row[], rowId: number): Row[] => {
     return prevRows.map((row) => {
       if (row.id === rowId) {
         return {
@@ -170,7 +116,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  addImageToCell: (prevRows: Row[], cellId: number, imageSrc: string) => {
+  addImageToCell: (prevRows: Row[], cellId: number, imageSrc: string): Row[] => {
     return prevRows.map((row) => {
       if (row.cells.some((cell) => cell.id === cellId)) {
         return {
@@ -192,7 +138,7 @@ export const RowHelpers = {
       return row;
     });
   },
-  addTextToCell: (prevRows: Row[], cellId: number) => {
+  addTextToCell: (prevRows: Row[], cellId: number): Row[] => {
     return prevRows.map((row) => {
       if (row.cells.some((cell) => cell.id === cellId)) {
         return {
@@ -214,10 +160,9 @@ export const RowHelpers = {
       return row;
     });
   },
-  deleteRowById: (prevRows: Row[], rowId: number) => {
+  deleteRowById: (prevRows: Row[], rowId: number): Row[] => {
     return prevRows.filter((row) => row.id !== rowId);
   },
-
   deleteCellById: (prevRows: Row[], cellId: number) => {
     return prevRows.map((row) => {
       if (row.cells.some((cell) => cell.id === cellId)) {

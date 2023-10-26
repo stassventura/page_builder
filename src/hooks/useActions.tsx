@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { Row, Selected } from '../types';
+import { Row, ActiveItem, ActiveItemType } from '../types';
 import { messages } from '../helpers/messages';
 
-import { generateRow, showError, showWarning, RowHelpers } from '../helpers';
+import { generateRow, RowHelpers } from '../helpers/rowutils';
+import { showError, showWarning } from '../helpers/fakers';
 
 const useActions = () => {
   const [rows, setRows] = useState<Row[]>([]);
-  const [selectedItem, setSelectedItem] = useState<Selected>(null);
+  const [selectedItem, setSelectedItem] = useState<ActiveItem>(null);
 
+  const resetSelectedItem = () => {
+    setSelectedItem(null);
+  };
   const createRow = () => {
     setRows((prev) => [generateRow(rows.length), ...prev]);
   };
 
-  const expandGap = (item: Selected) => {
+  const expandGap = (item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemExpand);
     if (item.type === 'cell') return showError(messages.unavailableForCell);
 
@@ -25,7 +29,7 @@ const useActions = () => {
     setRows((prev) => RowHelpers.expandRowGap(prev, item.id!));
   };
 
-  const compressGap = (item: Selected) => {
+  const compressGap = (item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemCompress);
 
     if (item.type === 'cell') return showError(messages.unavailableForCell);
@@ -48,7 +52,7 @@ const useActions = () => {
     setRows((prev) => RowHelpers.addCellToRow(prev, id));
   };
 
-  const changeColor = (color: string, item: Selected) => {
+  const changeColor = (color: string, item: ActiveItem) => {
     if (!item || item.id === null) {
       showError(messages.pickElementColor);
       return;
@@ -64,13 +68,13 @@ const useActions = () => {
     }
   };
 
-  const addButton = (item: Selected) => {
+  const addButton = (item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemButton);
     if (item.type === 'row') return showError(messages.buttonUnavailableForRow);
     setRows((prevRows) => RowHelpers.addButton(prevRows, item));
   };
 
-  const addImage = (image: string | null, item: Selected) => {
+  const addImage = (image: string | null, item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemText);
     if (item.type === 'row') return showError(messages.imageUnavailableForRow);
     if (!image) return showError(messages.addingImageError);
@@ -88,7 +92,7 @@ const useActions = () => {
     setRows((prev) => RowHelpers.addImageToCell(prev, item.id!, image));
   };
 
-  const addText = (item: Selected) => {
+  const addText = (item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemText);
     if (item.type === 'row') return showError(messages.addingTextError);
 
@@ -103,7 +107,7 @@ const useActions = () => {
     setRows((prev) => RowHelpers.addTextToCell(prev, item.id!));
   };
 
-  const deleteRow = (item: Selected) => {
+  const deleteRow = (item: ActiveItem) => {
     if (!item || item.id === null) return showError(messages.selectItemDelete);
 
     if (item.type === 'row') {
@@ -115,7 +119,7 @@ const useActions = () => {
     }
   };
 
-  const selectItem = (id: number, type: string) => {
+  const selectItem = (id: number, type: ActiveItemType) => {
     setSelectedItem({
       id,
       type,
@@ -136,6 +140,7 @@ const useActions = () => {
     selectItem,
     rows,
     setSelectedItem,
+    resetSelectedItem,
   };
 };
 
