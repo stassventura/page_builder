@@ -1,27 +1,16 @@
 import logo from '../assets/images/logo.svg';
-import { Selected } from '../types';
+import { Selected, SidebarProps } from '../types';
 import Tooltip from './Tooltip';
-import useAllert from '../hooks/useAllert';
-import { useRef } from 'react';
-interface SidebarProps {
-  createRow: () => void;
-  selectedItem: Selected;
-  createCall: (id: number) => void;
-  deleteRow: (item: Selected | null) => void;
-  expandGap: (item: Selected | null) => void;
-  compressGap: (item: Selected | null) => void;
-  changeColor: (color: string, item: Selected | null) => void;
-  addButton: (item: Selected | null) => void;
-  addText: (item: Selected | null) => void;
-  addImage: (image: string | null, item: Selected | null) => void;
-}
+import { useRef, FC } from 'react';
+import { showError } from '../helpers';
+
 const iconStyle =
   'w-10 h-10 rounded-full mb-2 flex items-center justify-center cursor-pointer shadow-xl border-2 border-gray-200 hover:border-gray-500 bg-gray-100';
 
-const Sidebar: React.FC<SidebarProps> = ({
+const Sidebar: FC<SidebarProps> = ({
   createRow,
   selectedItem,
-  createCall,
+  createCell,
   deleteRow,
   expandGap,
   compressGap,
@@ -30,9 +19,42 @@ const Sidebar: React.FC<SidebarProps> = ({
   addText,
   addImage,
 }) => {
-  const { showError } = useAllert();
   const colorInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const buttonsConfig = [
+    {
+      tooltip: 'Add new Element',
+      icon: 'fa-solid fa-plus',
+      action: (item: Selected | null) => (item && item.id ? createCell(item.id) : createRow()),
+    },
+    {
+      tooltip: 'Add text to the element',
+      icon: 'fa-solid fa-font',
+      action: (item: Selected | null) => addText(item || null),
+    },
+    {
+      tooltip: 'Add button to element',
+      icon: 'fa-regular fa-circle-dot',
+      action: (item: Selected | null) => addButton(item || null),
+    },
+    {
+      tooltip: 'Expand the gap between elements',
+      icon: 'fa-solid fa-expand',
+      action: (item: Selected | null) => expandGap(item || null),
+    },
+    {
+      tooltip: 'Compress the gap between elements',
+      icon: 'fa-solid fa-compress',
+      action: (item: Selected | null) => compressGap(item || null),
+    },
+
+    {
+      tooltip: 'Delete selected Element',
+      icon: 'fa-solid fa-trash',
+      action: (item: Selected | null) => deleteRow(item || null),
+    },
+  ];
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (selectedItem === null) {
@@ -52,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const handleIconClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (selectedItem === null || selectedItem.type !== 'call') {
+  const handleFileClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (selectedItem === null || selectedItem.type !== 'cell') {
       e.preventDefault();
       showError('Select the item to add the image');
       return;
@@ -85,26 +107,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         <img src={logo} alt="" />
       </div>
 
-      <Tooltip content="Add new Element">
-        <div
-          className={iconStyle}
-          onClick={() =>
-            selectedItem !== null && selectedItem.id ? createCall(selectedItem?.id) : createRow()
-          }>
-          <i className="fa-solid fa-plus"></i>
-        </div>
-      </Tooltip>
-      <Tooltip content="Add text to the element">
-        <div
-          className={iconStyle}
-          onClick={() => {
-            selectedItem !== null && selectedItem.id ? addText(selectedItem) : addText(null);
-          }}>
-          <i className="fa-solid fa-font"></i>
-        </div>
-      </Tooltip>
+      {buttonsConfig.slice(0, 2).map(({ tooltip, icon, action }, idx) => (
+        <Tooltip key={idx} content={tooltip}>
+          <div className={iconStyle} onClick={() => action(selectedItem)}>
+            <i className={`${icon}`}></i>
+          </div>
+        </Tooltip>
+      ))}
+
       <Tooltip content="Add image to element">
-        <div className={iconStyle} onClick={handleIconClick}>
+        <div className={iconStyle} onClick={handleFileClick}>
           <input
             type="file"
             ref={imageInputRef}
@@ -125,52 +137,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="w-full h-full opacity-0 absolute cursor-pointer"
             onChange={handleColorChange}
           />
-
           <i className="fa-solid fa-palette"></i>
         </div>
       </Tooltip>
 
-      <Tooltip content="Add button to element">
-        <div
-          className={iconStyle}
-          onClick={() => {
-            selectedItem !== null && selectedItem.id ? addButton(selectedItem) : addButton(null);
-          }}>
-          <i className="fa-regular fa-circle-dot"></i>
-        </div>
-      </Tooltip>
-
-      <Tooltip content="Expand the gap between elements">
-        <div
-          className={iconStyle}
-          onClick={() => {
-            selectedItem !== null && selectedItem.id ? expandGap(selectedItem) : expandGap(null);
-          }}>
-          <i className="fa-solid fa-expand"></i>
-        </div>
-      </Tooltip>
-
-      <Tooltip content="Compress the gap between elements">
-        <div
-          className={iconStyle}
-          onClick={() => {
-            selectedItem !== null && selectedItem.id
-              ? compressGap(selectedItem)
-              : compressGap(null);
-          }}>
-          <i className="fa-solid fa-compress"></i>
-        </div>
-      </Tooltip>
-
-      <Tooltip content="Delete selected Element">
-        <div
-          className={iconStyle}
-          onClick={() => {
-            selectedItem !== null && selectedItem.id ? deleteRow(selectedItem) : deleteRow(null);
-          }}>
-          <i className="fa-solid fa-trash"></i>
-        </div>
-      </Tooltip>
+      {buttonsConfig.slice(2).map(({ tooltip, icon, action }, idx) => (
+        <Tooltip key={idx} content={tooltip}>
+          <div className={iconStyle} onClick={() => action(selectedItem)}>
+            <i className={`${icon}`}></i>
+          </div>
+        </Tooltip>
+      ))}
     </div>
   );
 };
