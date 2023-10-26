@@ -1,253 +1,116 @@
 import { useState } from 'react';
 import { Row, Selected } from '../types';
-import {
-  getRandomRowColor,
-  getRandomCellColor,
-  getRandomSentence,
-  generateRandomID,
-  showError,
-  showWarning,
-} from '../helpers';
+import { messages } from '../helpers/messages';
+
+import { generateRow, showError, showWarning, RowHelpers } from '../helpers';
 
 const useActions = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [selectedItem, setSelectedItem] = useState<Selected>(null);
 
   const createRow = () => {
-    const newRow = {
-      id: generateRandomID(),
-      name: `row ${rows.length + 1}`,
-      cells: [],
-      gap: 10,
-      color: getRandomRowColor(),
-    };
-
-    setRows((prev) => [newRow, ...prev]);
+    setRows((prev) => [generateRow(rows.length), ...prev]);
   };
 
   const expandGap = (item: Selected) => {
-    if (!item || item.id === null) return showError('Select item to expand the gap');
-
-    if (item.type === 'cell') return showError('Unavailable for Cell');
+    if (!item || item.id === null) return showError(messages.selectItemExpand);
+    if (item.type === 'cell') return showError(messages.unavailableForCell);
 
     const targetRow = rows.find((r) => r.id === item.id);
     if (targetRow && targetRow.gap >= 100) {
-      return showError('The maximum value for Gap has been exceeded');
+      return showError(messages.maxGapExceeded);
     }
-    if (targetRow?.cells.length === 0)
-      showWarning("You won't see any changes because the row is empty");
+    if (targetRow?.cells.length === 0) showWarning(messages.emptyRow);
 
-    const updatedrows = rows.map((r) => {
-      if (r.id === item.id) {
-        return {
-          ...r,
-          gap: r.gap + 5,
-        };
-      }
-      return r;
-    });
-
-    setRows(updatedrows);
+    setRows((prev) => RowHelpers.expandRowGap(prev, item.id!));
   };
 
   const compressGap = (item: Selected) => {
-    if (!item || item.id === null) return showError('Select item to compress the gap');
+    if (!item || item.id === null) return showError(messages.selectItemCompress);
 
-    if (item.type === 'cell') return showError('Unavailable for Cell');
+    if (item.type === 'cell') return showError(messages.unavailableForCell);
 
     const targetRow = rows.find((r) => r.id === item.id);
     if (targetRow && targetRow.gap <= 5) {
-      return showError('Gap is too small to compress further');
+      return showError(messages.minGapExceeded);
     }
-    if (targetRow?.cells.length === 0)
-      showWarning("You won't see any changes because the row is empty");
+    if (targetRow?.cells.length === 0) showWarning(messages.emptyRow);
 
-    const updatedrows = rows.map((r) => {
-      if (r.id === item.id) {
-        return {
-          ...r,
-          gap: r.gap - 5,
-        };
-      }
-      return r;
-    });
-
-    setRows(updatedrows);
+    setRows((prev) => RowHelpers.compressRowGap(prev, item.id!));
   };
 
   const createCell = (id: number | null) => {
-    const currentrows = [...rows];
+    if (!id) return showError(messages.createCellError);
 
-    const row = currentrows.find((row) => row.id === id);
+    const rowExists = rows.some((row) => row.id === id);
+    if (!rowExists) return showError(messages.createCellError);
 
-    if (row) {
-      const newCell = {
-        id: generateRandomID(),
-        name: `Cell ${row.cells.length + 1}`,
-        color: getRandomCellColor(),
-      };
-
-      row.cells.push(newCell);
-    }
-
-    setRows(currentrows);
+    setRows((prev) => RowHelpers.addCellToRow(prev, id));
   };
 
   const changeColor = (color: string, item: Selected) => {
     if (!item || item.id === null) {
-      showError('Pick any element to change the color');
+      showError(messages.pickElementColor);
       return;
     }
 
     if (item.type === 'row') {
-      const newRow = rows.map((row) => {
-        if (row.id === item.id) {
-          return { ...row, color: color };
-        }
-        return row;
-      });
-      setRows(newRow);
+      setRows((prev) => RowHelpers.changeRowColor(prev, item.id!, color));
       return;
     }
 
     if (item.type === 'cell') {
-      const newRow = rows.map((row) => {
-        if (row.cells.some((cell) => cell.id === item.id)) {
-          return {
-            ...row,
-            cells: row.cells.map((cell) => {
-              if (cell.id === item.id) {
-                return { ...cell, color: color };
-              }
-              return cell;
-            }),
-          };
-        }
-        return row;
-      });
-
-      setRows(newRow);
+      setRows((prev) => RowHelpers.changeCellColor(prev, item.id!, color));
     }
   };
 
   const addButton = (item: Selected) => {
-    if (!item || item.id === null) return showError('Select the item to add the button');
-    if (item.type === 'row') return showError('Add button is not available for Row');
-
-    const newRow = rows.map((row) => {
-      if (row.cells.some((cell) => cell.id === item.id)) {
-        return {
-          ...row,
-          cells: row.cells.map((cell) => {
-            if (cell.id === item.id) {
-              if (cell.content && cell.content.type === 'button') {
-                showError('Button already exists in this cell');
-                return cell;
-              }
-              return {
-                ...cell,
-                content: {
-                  type: 'button',
-                  value: 'Click Me',
-                },
-              };
-            }
-            return cell;
-          }),
-        };
-      }
-      return row;
-    });
-
-    setRows(newRow);
+    if (!item || item.id === null) return showError(messages.selectItemButton);
+    if (item.type === 'row') return showError(messages.buttonUnavailableForRow);
+    setRows((prevRows) => RowHelpers.addButton(prevRows, item));
   };
+
   const addImage = (image: string | null, item: Selected) => {
-    if (!item || item.id === null) return showError('Select the item to add the text');
-    if (item.type === 'row') return showError('Add text is not available for Row');
-    if (!image) return showError('An error occurred when adding an image');
+    if (!item || item.id === null) return showError(messages.selectItemText);
+    if (item.type === 'row') return showError(messages.imageUnavailableForRow);
+    if (!image) return showError(messages.addingImageError);
 
-    const newRow = rows.map((row) => {
-      if (row.cells.some((cell) => cell.id === item.id)) {
-        return {
-          ...row,
-          cells: row.cells.map((cell) => {
-            if (cell.id === item.id) {
-              if (cell.content && cell.content.type === 'image') {
-                showError('Image already exists in this cell');
-                return cell;
-              }
-              return {
-                ...cell,
-                content: {
-                  type: 'image',
-                  src: image,
-                },
-              };
-            }
-            return cell;
-          }),
-        };
-      }
-      return row;
-    });
+    const existingCellHasImage = rows.some((row) =>
+      row.cells.some(
+        (cell) => cell.id === item.id && cell.content && cell.content.type === 'image',
+      ),
+    );
+    if (existingCellHasImage) {
+      showError(messages.imageExists);
+      return;
+    }
 
-    setRows(newRow);
+    setRows((prev) => RowHelpers.addImageToCell(prev, item.id!, image));
   };
 
   const addText = (item: Selected) => {
-    if (!item || item.id === null) return showError('Select the item to add the text');
-    if (item.type === 'row') return showError('Add text is not available for Row');
+    if (!item || item.id === null) return showError(messages.selectItemText);
+    if (item.type === 'row') return showError(messages.addingTextError);
 
-    const newRow = rows.map((row) => {
-      if (row.cells.some((cell) => cell.id === item.id)) {
-        return {
-          ...row,
-          cells: row.cells.map((cell) => {
-            if (cell.id === item.id) {
-              if (cell.content && cell.content.type === 'text') {
-                showError('Text already exists in this cell');
-                return cell;
-              }
-              return {
-                ...cell,
-                content: {
-                  type: 'text',
-                  value: getRandomSentence(),
-                },
-              };
-            }
-            return cell;
-          }),
-        };
-      }
-      return row;
-    });
+    const existingCellHasText = rows.some((row) =>
+      row.cells.some((cell) => cell.id === item.id && cell.content && cell.content.type === 'text'),
+    );
+    if (existingCellHasText) {
+      showError(messages.textExists);
+      return;
+    }
 
-    setRows(newRow);
+    setRows((prev) => RowHelpers.addTextToCell(prev, item.id!));
   };
 
   const deleteRow = (item: Selected) => {
-    if (!item || item.id === null) return showError('Select item to delete');
+    if (!item || item.id === null) return showError(messages.selectItemDelete);
 
     if (item.type === 'row') {
-      const newRow = rows.filter((r) => r.id !== item.id);
-      setRows(newRow);
+      setRows((prev) => RowHelpers.deleteRowById(prev, item.id!));
       setSelectedItem(null);
-
-      return;
-    }
-    if (item.type === 'cell') {
-      const newRow = rows.map((row) => {
-        if (row.cells.some((cell) => cell.id === item.id)) {
-          return {
-            ...row,
-            cells: row.cells.filter((cell) => cell.id !== item.id),
-          };
-        }
-        return row;
-      });
-
-      setRows(newRow);
+    } else if (item.type === 'cell') {
+      setRows((prev) => RowHelpers.deleteCellById(prev, item.id!));
       setSelectedItem(null);
     }
   };

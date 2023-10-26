@@ -1,9 +1,21 @@
 import logo from '../assets/images/logo.svg';
-import { Selected, SidebarProps } from '../types';
+import { Selected } from '../types';
 import Tooltip from './Tooltip';
 import { useRef, FC } from 'react';
 import { showError } from '../helpers';
 
+interface SidebarProps {
+  createRow: () => void;
+  selectedItem: Selected;
+  createCell: (id: number) => void;
+  deleteRow: (item: Selected | null) => void;
+  expandGap: (item: Selected | null) => void;
+  compressGap: (item: Selected | null) => void;
+  changeColor: (color: string, item: Selected | null) => void;
+  addButton: (item: Selected | null) => void;
+  addText: (item: Selected | null) => void;
+  addImage: (image: string | null, item: Selected | null) => void;
+}
 const iconStyle =
   'w-10 h-10 rounded-full mb-2 flex items-center justify-center cursor-pointer shadow-xl border-2 border-gray-200 hover:border-gray-500 bg-gray-100';
 

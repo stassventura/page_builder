@@ -1,6 +1,13 @@
 import classNames from 'classnames';
-import { WorkSpaceProps } from '../types';
+import { Row, Selected } from '../types';
 import { FC } from 'react';
+
+interface WorkSpaceProps {
+  rows: Row[];
+  selectedItem: Selected;
+  selectItem: (id: number, type: string) => void;
+  createCell: (id: number) => void;
+}
 
 const WorkSpace: FC<WorkSpaceProps> = ({ rows, selectItem, selectedItem }) => {
   return (
