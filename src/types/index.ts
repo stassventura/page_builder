@@ -1,13 +1,26 @@
-type Call = {
-  id: number;
-  name: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // content: any[];
+type Content = {
+  type: 'button' | 'image' | 'text';
+  src?: string;
+  value?: string;
 };
 
-export type Data = {
+type Cell = {
   id: number;
   name: string;
-  cells: Call[];
-  grid: number;
+  color: string;
+  content?: Content;
 };
+
+export type Row = {
+  id: number;
+  name: string;
+  cells: Cell[];
+  color: string;
+  gap: number;
+};
+export type ActiveItemType = 'row' | 'cell';
+
+export type ActiveItem = {
+  id: number;
+  type: ActiveItemType;
+} | null;

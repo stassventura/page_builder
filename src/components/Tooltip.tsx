@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { FC } from 'react';
 
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ children, content }) => {
+const Tooltip: FC<TooltipProps> = ({ children, content }) => {
   const [show, setShow] = useState(false);
 
   return (
